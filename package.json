@@ -1,0 +1,46 @@
+{
+  "name": "forgecode",
+  "version": "0.1.0",
+  "description": "A local-first, provider-neutral CLI foundation for agentic coding workflows.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "forgecode": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check": "npm run typecheck && npm test"
+  },
+  "keywords": [
+    "cli",
+    "agent",
+    "developer-tools",
+    "typescript",
+    "coding-assistant"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.2",
+    "fast-glob": "^3.3.3",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  }
+}
+

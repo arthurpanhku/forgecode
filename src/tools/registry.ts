@@ -1,0 +1,48 @@
+import { assertToolPermission } from '../core/permissions.js';
+import type { ForgeContext } from '../core/context.js';
+import { listFilesTool } from './listFiles.js';
+import { readFileTool } from './readFile.js';
+import { searchTextTool } from './searchText.js';
+import { shellTool } from './shell.js';
+import type { Tool, ToolResult } from './types.js';
+
+export class ToolRegistry {
+  private readonly tools = new Map<string, Tool<unknown>>();
+
+  register<Input>(tool: Tool<Input>): void {
+    if (this.tools.has(tool.name)) {
+      throw new Error(`Tool already registered: ${tool.name}`);
+    }
+
+    this.tools.set(tool.name, tool as Tool<unknown>);
+  }
+
+  list(): Tool<unknown>[] {
+    return [...this.tools.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  get(name: string): Tool<unknown> | undefined {
+    return this.tools.get(name);
+  }
+
+  async run(name: string, rawInput: unknown, context: ForgeContext): Promise<ToolResult> {
+    const tool = this.get(name);
+    if (!tool) {
+      throw new Error(`Unknown tool: ${name}`);
+    }
+
+    assertToolPermission(tool.access, context);
+    const input = tool.inputSchema.parse(rawInput);
+    return tool.run(input, context);
+  }
+}
+
+export function createDefaultToolRegistry(): ToolRegistry {
+  const registry = new ToolRegistry();
+  registry.register(listFilesTool);
+  registry.register(readFileTool);
+  registry.register(searchTextTool);
+  registry.register(shellTool);
+  return registry;
+}
+
