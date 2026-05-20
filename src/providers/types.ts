@@ -9,6 +9,9 @@ export type ProviderConfig = {
 export type ChatMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
+  tool_call_id?: string;
+  name?: string;
+  tool_calls?: ToolCall[];
 };
 
 export type ToolDef = {
@@ -40,6 +43,7 @@ export type ChatRequest = {
 export type ChatResponse = {
   content: string;
   model: string;
+  toolCalls?: ToolCall[];
   usage?: {
     inputTokens: number;
     outputTokens: number;

@@ -48,12 +48,21 @@ export class AgentRunner {
         tools: toolDefs.length > 0 ? toolDefs : undefined,
       });
 
-      // Add assistant message
-      const assistantMsg: ChatMessage = { role: 'assistant', content: response.content };
+      // Add assistant message — include tool_calls if present (required by OpenAI-compatible APIs)
+      const assistantMsg: ChatMessage = {
+        role: 'assistant',
+        content: response.content,
+        tool_calls: response.toolCalls && response.toolCalls.length > 0 ? response.toolCalls : undefined,
+      };
       messages.push(assistantMsg);
 
-      // Check for tool calls in the response content — parse JSON tool call syntax
-      const toolCalls = this.parseToolCalls(response.content);
+      // Check for tool calls — prefer native API response, fallback to @tool() text parsing
+      let toolCalls: ToolCall[] = [];
+      if (response.toolCalls && response.toolCalls.length > 0) {
+        toolCalls = response.toolCalls;
+      } else {
+        toolCalls = this.parseToolCalls(response.content);
+      }
       if (toolCalls.length === 0) {
         // No tool calls — this is the final response
         return { messages, finalResponse: response.content, iterationsUsed: this.iterationCount };
@@ -69,11 +78,15 @@ export class AgentRunner {
           messages.push({
             role: 'tool',
             content: `[Tool ${tc.name} result]:\n${result.output}`,
+            tool_call_id: tc.id,
+            name: tc.name,
           });
         } catch (err) {
           messages.push({
             role: 'tool',
             content: `[Tool ${tc.name} error]: ${err instanceof Error ? err.message : String(err)}`,
+            tool_call_id: tc.id,
+            name: tc.name,
           });
         }
       }
