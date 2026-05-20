@@ -4,6 +4,8 @@ import { listFilesTool } from './listFiles.js';
 import { readFileTool } from './readFile.js';
 import { searchTextTool } from './searchText.js';
 import { shellTool } from './shell.js';
+import { editFileTool } from './editFile.js';
+import { writeFileTool } from './writeFile.js';
 import type { Tool, ToolResult } from './types.js';
 
 export class ToolRegistry {
@@ -39,10 +41,12 @@ export class ToolRegistry {
 
 export function createDefaultToolRegistry(): ToolRegistry {
   const registry = new ToolRegistry();
+  registry.register(editFileTool);
   registry.register(listFilesTool);
   registry.register(readFileTool);
   registry.register(searchTextTool);
   registry.register(shellTool);
+  registry.register(writeFileTool);
   return registry;
 }
 

@@ -1,5 +1,7 @@
 import { Command } from 'commander';
 import { registerAskCommand } from './commands/ask.js';
+import { registerChatCommand } from './commands/chat.js';
+import { registerInitCommand } from './commands/init.js';
 import { registerRunToolCommand } from './commands/runTool.js';
 import { registerScanCommand } from './commands/scan.js';
 import { registerToolsCommand } from './commands/tools.js';
@@ -18,6 +20,8 @@ export function buildProgram(): Command {
   registerToolsCommand(program, registry);
   registerRunToolCommand(program, registry);
   registerAskCommand(program, registry);
+  registerChatCommand(program, registry);
+  registerInitCommand(program);
 
   return program;
 }

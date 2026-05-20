@@ -1,0 +1,58 @@
+import { readFile, writeFile } from 'node:fs/promises';
+import { z } from 'zod';
+import { generateDiff, formatDiff } from '../core/diffPreview.js';
+import { resolveInsideWorkspace } from '../core/workspace.js';
+import type { Tool } from './types.js';
+
+const inputSchema = z
+  .object({
+    filePath: z.string().min(1),
+    oldString: z.string().describe('Exact text to replace'),
+    newString: z.string().describe('Replacement text'),
+  })
+  .strict();
+
+type Input = z.infer<typeof inputSchema>;
+
+export const editFileTool: Tool<Input> = {
+  name: 'edit_file',
+  description: 'Replace exact text in a file. Reports a diff of the change.',
+  access: 'write',
+  inputSchema,
+  isConcurrencySafe: () => false,
+  async run(input, context) {
+    const filePath = resolveInsideWorkspace(context.cwd, input.filePath);
+
+    const existing = await readFile(filePath, 'utf8');
+
+    const idx = existing.indexOf(input.oldString);
+    if (idx === -1) {
+      throw new Error(`Could not find oldString in ${input.filePath}`);
+    }
+
+    const before =
+      input.oldString.length > 60
+        ? input.oldString.slice(0, 60) + '…'
+        : input.oldString;
+
+    const occurrences = existing.split(input.oldString).length - 1;
+
+    const updated = existing.replace(input.oldString, input.newString);
+
+    const diff = generateDiff(existing, updated);
+    const output = [`Replaced: "${before}"`, '', formatDiff(diff)].join('\n');
+
+    await writeFile(filePath, updated, 'utf8');
+
+    return {
+      title: `Edit ${input.filePath}`,
+      output,
+      metadata: {
+        path: filePath,
+        bytesBefore: Buffer.byteLength(existing, 'utf8'),
+        bytesAfter: Buffer.byteLength(updated, 'utf8'),
+        occurrences,
+      },
+    };
+  },
+};
